@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Wishes</title>
+    <title>Add Wish</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -22,36 +22,6 @@
             background-color: #ff99cc;
             color: white;
         }
-        .wish-card {
-            background: #f9f9f9;
-            border: 1px solid #ff99cc;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-        }
-
-        /* HEADER */
-        .header {
-            background: linear-gradient(to right, #ff99cc, #ccffff);
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            color: white;
-        }
-        .user-info {
-            background: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-        }
     </style>
 </head>
 <body>
@@ -62,13 +32,26 @@
         </div>
     </div>
     <div class="container">
-        <h2>My Wishes</h2>
-        
-        <div id="wish-list"></div>
+        <h2>Add a New Wish</h2>
+        <form id="add-wish-form">
+            <div class="mb-3">
+                <label for="wish-title" class="form-label">Wish Title</label>
+                <input type="text" class="form-control" id="wish-title" required>
+            </div>
+            <div class="mb-3">
+                <label for="wish-description" class="form-label">Wish Description</label>
+                <textarea class="form-control" id="wish-description" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="wish-goal" class="form-label">Goal Amount (WSH)</label>
+                <input type="number" class="form-control" id="wish-goal" required>
+            </div>
+            <button type="submit" class="btn btn-custom">Add Wish</button>
+        </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <script src="connect.js"></script>
-    <script src="wishes.js"></script>
+    <script src="add-wish.js"></script>
 </body>
 </html>

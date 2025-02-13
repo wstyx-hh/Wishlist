@@ -7,8 +7,8 @@ module.exports = {
     ganache: {
       url: "http://127.0.0.1:8545", 
       accounts: [
-        "0x89f97f1f5f5c24d233154be24611eed23954d4800df47c18ee532ea12541de0c",
-        "0x7e038203cb1de53fae6ae72a1e138cb1c4387a9e1c190bcbe8fc0c34065ab515"
+        "0xe1f011c326335068ea9f990f90a4ec0b75f7fb3d9355baa1e8d63a52dcda5f51",
+        "0xe9a6f541aeb78c4d317ed38fb4a2db2f1d4e603d142aa9f526f6dd5cde2dbbd5"
       ],
       ens: { enabled: false },
     },

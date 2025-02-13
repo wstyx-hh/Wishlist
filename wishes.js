@@ -1,4 +1,3 @@
-// Connect to MetaMask
 async function connectToWallet() {
     if (typeof window.ethereum !== 'undefined') {
         web3 = new Web3(window.ethereum);
@@ -41,8 +40,8 @@ async function showUserData() {
     }
 }
 
-// Get wishes
-async function getWishes() {
+// Get user's wishes
+async function getUserWishes() {
     if (!wishlistContract || !account) {
         console.log("Contract or account not initialized");
         return;
@@ -56,20 +55,22 @@ async function getWishes() {
             console.error("Unexpected response format:", wishes);
             return;
         }
+
+        // Clear existing wishes
         const wishListElement = document.getElementById('wish-list');
         if (wishListElement) {
             wishListElement.innerHTML = '';
         }
 
         wishes.forEach(wish => {
-            if (wish.isFundable) {
-                renderWishes({
+            if (wish.wisher.toLowerCase() === account.toLowerCase()) {
+                renderUserWishes({
                     id: wish.id,
                     title: wish.title,
                     description: wish.description,
                     goalAmount: wish.goalAmount,
                     currentAmount: wish.currentAmount,
-                    wisher: wish.wisher,
+                    isFundable: wish.isFundable,
                 });
             }
         });
@@ -85,8 +86,8 @@ async function getWishes() {
     }
 }
 
-// Render wishes
-function renderWishes(wish) {
+// Render user's wishes
+function renderUserWishes(wish) {
     const wishListElement = document.getElementById('wish-list');
     if (!wishListElement) {
         console.error("Element with ID 'wish-list' not found");
@@ -99,99 +100,40 @@ function renderWishes(wish) {
         <p>${wish.description}</p>
         <p><strong>Goal:</strong> ${wish.goalAmount} WSH</p>
         <p><strong>Current:</strong> ${wish.currentAmount} WSH</p>
-        <p><small>By: ${wish.wisher}</small></p>
-        <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#supportModal" onclick="setSupportWishId(${wish.id})">Support</button>
-        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#refundModal" onclick="setRefundWishId(${wish.id})">Refund</button>
+        <button class="btn btn-warning" onclick="closeWish(${wish.id})">Close Fund</button>
+        <button class="btn btn-success" onclick="withdrawFunds(${wish.id})">Withdraw Funds</button>
     `;
     wishListElement.appendChild(wishElement);
 }
 
-let currentWishId;
-
-function setSupportWishId(wishId) {
-    currentWishId = wishId;
-}
-
-function setRefundWishId(wishId) {
-    currentWishId = wishId;
-}
-
-document.getElementById('supportForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const amount = document.getElementById('supportAmount').value;
-    if (!amount || isNaN(amount) || amount <= 0) {
-        alert("Invalid amount");
-        return;
-    }
-
+// Close wish fund
+async function closeWish(wishId) {
     try {
-        const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-        await tokenContract.methods.approve(account, amount).send({ from: account });
-
-        // Fund the wish
-        await wishlistContract.methods.fundWish(currentWishId, amount).send({ from: account });
-        alert("Wish funded successfully!");
-        document.getElementById('supportAmount').value = '';
-        const supportModal = bootstrap.Modal.getInstance(document.getElementById('supportModal'));
-        supportModal.hide();
-        getWishes();
+        await wishlistContract.methods.closeWish(wishId).send({ from: account });
+        alert("Wish fund closed successfully!");
+        getUserWishes();
     } catch (e) {
-        console.error("Error funding wish:", e);
-    }
-});
-
-document.getElementById('confirmRefund').addEventListener('click', async function() {
-    try {
-        await wishlistContract.methods.refundWish(currentWishId).send({ from: account });
-        alert("Wish refunded successfully!");
-        const refundModal = bootstrap.Modal.getInstance(document.getElementById('refundModal'));
-        refundModal.hide();
-        getWishes();
-    } catch (e) {
-        console.error("Error refunding wish:", e);
-    }
-});
-
-async function fundWish(wishId) {
-    const amount = prompt("Enter the amount you want to fund (in WSH):");
-    if (!amount || isNaN(amount) || amount <= 0) {
-        alert("Invalid amount");
-        return;
-    }
-
-    try {
-        const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-        await tokenContract.methods.approve(contractAddress, amount).send({ from: account });
-
-        // Fund the wish
-        await wishlistContract.methods.fundWish(wishId, amount).send({ from: account });
-        alert("Wish funded successfully!");
-
-        // Refresh the wishes list
-        getWishes();
-    } catch (e) {
-        console.error("Ошибка при финансировании желания", e);
-        alert("Error funding wish: " + e.message);
+        console.error("Error closing wish fund:", e);
+        alert("Error closing wish fund: " + e.message);
     }
 }
 
-async function refundWish(wishId) {
+// Withdraw funds from wish
+async function withdrawFunds(wishId) {
     try {
-        await wishlistContract.methods.refundWish(account, wishId).send({ from: account });
-        alert("Wish refunded successfully!");
-
-        // Refresh the wishes list
-        getWishes();
+        await wishlistContract.methods.withdrawFunds(wishId).send({ from: account });
+        alert("Funds withdrawn successfully!");
+        getUserWishes();
     } catch (e) {
-        console.error("Ошибка при возврате средств", e);
-        alert("Error refunding wish: " + e.message);
+        console.error("Error withdrawing funds:", e);
+        alert("Error withdrawing funds: " + e.message);
     }
 }
 
 // Main function
 function main() {
     showUserData();
-    getWishes();
+    getUserWishes();
 }
 
 document.addEventListener('DOMContentLoaded', connectToWallet);

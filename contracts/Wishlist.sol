@@ -40,7 +40,7 @@ contract Wishlist {
             id: 0,
             title: "Buy a new car",
             description: "I want to buy a new car",
-            goalAmount: 100000 * (10 ** 18),
+            goalAmount: 100,
             currentAmount: 0,
             wisher: msg.sender,
             isFundable: true
@@ -74,7 +74,7 @@ contract Wishlist {
             id: wishes.length,
             title: _title,
             description: _description,
-            goalAmount: _goalAmount * (10 ** 18),
+            goalAmount: _goalAmount,
             currentAmount: 0,
             wisher: msg.sender,
             isFundable: true
@@ -118,19 +118,29 @@ contract Wishlist {
 
 
     // Отправляет по запросу все желания
-    function getWishes() public view returns(WishModel[] memory) {
+    function getWish(uint256 _id) public view returns(uint256, string memory, string memory, uint256, uint256, address, bool){ 
+        require(_id > 0 && _id < wishes.length, "Invalid wish id");
+        WishModel memory wish = wishes[_id];
+        return (wish.id, wish.title, wish.description, wish.goalAmount, wish.currentAmount, wish.wisher, wish.isFundable);
+    }
+    function getWishes() public view returns (WishModel[] memory) {
         return wishes;
+    }
+    function getWishCount() public view returns(uint256){
+        return wishes.length;
     }
 
     // Юзер закрывает желание и забирает деньги
     function withdrawFunds(uint256 _id) public{
         // require(isUserAuthorized(account), "User is not authorized");
         require(_id > 0 && _id < wishes.length, "Invalid wish id");
-        require(msg.sender == wishes[_id].wisher, "You are not the owner of the wish");
+        WishModel memory wish = wishes[_id];
+        require(msg.sender == wish.wisher, "You are not the owner of the wish");
 
-        token.transferFrom(owner, msg.sender, wishes[_id].currentAmount);
-        wishes[_id].isFundable = false;
-        emit WishWithdrawn(_id, wishes[_id].title, msg.sender, wishes[_id].currentAmount);
+        token.transferFrom(owner, msg.sender, wish.currentAmount);
+        wish.currentAmount = 0;
+        wish.isFundable = false;
+        emit WishWithdrawn(_id, wish.title, msg.sender, wishes[_id].currentAmount);
     }
     
 
