@@ -4,8 +4,9 @@ async function main() {
 
     const Wishlist = await hre.ethers.getContractFactory("Wishlist");
     const wishlist = await Wishlist.deploy();
-    await wishlist.deployed();
-    console.log("Wishlist contract deployed to:", wishlist.address);
+    await wishlist.waitForDeployment(); // Используем этот метод вместо deployed()
+    console.log("Wishlist contract deployed to:", await wishlist.getAddress());
+
 }
 
 main().catch((error) => {

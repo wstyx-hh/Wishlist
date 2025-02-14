@@ -5,10 +5,10 @@ module.exports = {
   solidity: "0.8.20",
   networks: {
     ganache: {
-      url: "http://127.0.0.1:8545", 
+      url: "http://127.0.0.1:7545", 
       accounts: [
-        "0xe1f011c326335068ea9f990f90a4ec0b75f7fb3d9355baa1e8d63a52dcda5f51",
-        "0xe9a6f541aeb78c4d317ed38fb4a2db2f1d4e603d142aa9f526f6dd5cde2dbbd5"
+        "0x2c4cb6999c58da38197d0fc73bc7b1fe201c45f01c5661284b9a747595ee7f3b",
+        "0x86b1d4ad1af34664bb13f17a618e3f3b565533f7c0493b23c87aac1b58db9690"
       ],
       ens: { enabled: false },
     },

@@ -1,9 +1,216 @@
-// Global Variables
+//Global Variables
 let web3;
 let account;
 let wishlistContract;
-const contractABI = [ /* Your Contract ABI here */ ];
-const contractAddress = 'YOUR_CONTRACT_ADDRESS'; // Replace with your contract's address
+const contractABI = [
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "wishId",
+				"type": "uint256"
+			}
+		],
+		"name": "WishClosed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "wishId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "goalAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "WishCreated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "wishId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "WishFunded",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "wishId",
+				"type": "uint256"
+			}
+		],
+		"name": "closeWish",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "goalAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "createWish",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "wishId",
+				"type": "uint256"
+			}
+		],
+		"name": "fundWish",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllWishes",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "goalAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "currentAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "isClosed",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct Wishlist.Wish[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "wishCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "wishes",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "goalAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "currentAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isClosed",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
+
+const contractAddress = '0xe18d6eD7FE3Bb51138b2a963B1e1668eF5ab88a5'; // Replace with your contract's address
 
 // Connect to MetaMask
 async function connectToWallet() {
@@ -30,13 +237,8 @@ async function connectToWallet() {
 
 // Get user's wishes
 async function getUserWishes() {
-    if (!wishlistContract || !account) {
-        console.log("Contract or account not initialized");
-        return;
-    }
-
     try {
-        const wishes = await wishlistContract.methods.getWishes().call({ from: account });
+        const wishes = await wishlistContract.methods.getAllWishes().call();
         console.log("User's Wishes:", wishes);
 
         if (!Array.isArray(wishes)) {
@@ -45,19 +247,17 @@ async function getUserWishes() {
         }
 
         const wishListElement = document.getElementById('wish-list');
-        if (wishListElement) {
-            wishListElement.innerHTML = ''; // Clear the existing list
-        }
+        wishListElement.innerHTML = ''; // Очистка списка
 
-        wishes.forEach(wish => {
-            if (wish.wisher.toLowerCase() === account.toLowerCase()) {
+        wishes.forEach((wish, index) => {
+            if (!wish.isClosed) {
                 renderUserWishes({
-                    id: wish.id,
+                    id: index + 1,
                     title: wish.title,
                     description: wish.description,
-                    goalAmount: wish.goalAmount,
-                    currentAmount: wish.currentAmount,
-                    isFundable: wish.isFundable,
+                    goalAmount: web3.utils.fromWei(wish.goalAmount, "ether"),
+                    currentAmount: web3.utils.fromWei(wish.currentAmount, "ether"),
+                    isFundable: !wish.isClosed
                 });
             }
         });
@@ -65,6 +265,42 @@ async function getUserWishes() {
         console.error("Error getting user's wishes:", e);
     }
 }
+// async function getUserWishes() {
+//     if (!wishlistContract || !account) {
+//         console.log("Contract or account not initialized");
+//         return;
+//     }
+
+//     try {
+//         const wishes = await wishlistContract.methods.getWishes().call({ from: account });
+//         console.log("User's Wishes:", wishes);
+
+//         if (!Array.isArray(wishes)) {
+//             console.error("Unexpected response format:", wishes);
+//             return;
+//         }
+
+//         const wishListElement = document.getElementById('wish-list');
+//         if (wishListElement) {
+//             wishListElement.innerHTML = ''; // Clear the existing list
+//         }
+
+//         wishes.forEach(wish => {
+//             if (wish.wisher.toLowerCase() === account.toLowerCase()) {
+//                 renderUserWishes({
+//                     id: wish.id,
+//                     title: wish.title,
+//                     description: wish.description,
+//                     goalAmount: wish.goalAmount,
+//                     currentAmount: wish.currentAmount,
+//                     isFundable: wish.isFundable,
+//                 });
+//             }
+//         });
+//     } catch (e) {
+//         console.error("Error getting user's wishes:", e);
+//     }
+// }
 
 // Render user's wishes to the HTML
 function renderUserWishes(wish) {

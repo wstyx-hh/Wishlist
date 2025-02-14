@@ -27,6 +27,15 @@ contract Wishlist {
         emit WishCreated(wishCount, title, goalAmount);
     }
 
+    function getAllWishes() public view returns (Wish[] memory) {
+    Wish[] memory allWishes = new Wish[](wishCount);
+    for (uint256 i = 1; i <= wishCount; i++) {
+        allWishes[i - 1] = wishes[i];
+    }
+    return allWishes;
+    }
+
+
     // Function to fund a wish using Ether
     function fundWish(uint256 wishId) public payable {
         require(wishId > 0 && wishId <= wishCount, "Wish does not exist.");

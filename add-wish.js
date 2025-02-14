@@ -49,16 +49,13 @@ async function addWish(event) {
     const goalAmount = parseFloat(document.getElementById('wish-goal').value);
 
     if (!title || !description || isNaN(goalAmount) || goalAmount <= 0) {
-        alert("Please fill in all fields with valid data. Goal amount must be a positive number.");
+        alert("Please fill in all fields with valid data.");
         return;
     }
 
     try {
-        // Here we send Ethereum to fund the wish goal
-        const etherValue = web3.utils.toWei(goalAmount.toString(), 'ether');
-        await wishlistContract.methods.createWish(title, description, etherValue).send({
-            from: account,
-            value: etherValue
+        await wishlistContract.methods.createWish(title, description, goalAmount).send({
+            from: account
         });
         alert("Wish added successfully!");
         document.getElementById('add-wish-form').reset();
