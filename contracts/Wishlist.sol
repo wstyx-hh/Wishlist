@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 contract Wishlist {
-    IERC20 public token;
     address public owner;
 
-    struct WishModel{
+    struct WishModel {
         uint256 id;
         string title;
         string description;
@@ -17,11 +14,12 @@ contract Wishlist {
         bool isFundable;
     }
 
-    struct WishFunderModel{
+    struct WishFunderModel {
         uint256 wishId;
         address funder;
         uint256 amount;
     }
+
     WishModel[] public wishes;
     mapping(address => string) public users;
     mapping(uint256 => WishFunderModel[]) wishFunders;
@@ -33,41 +31,21 @@ contract Wishlist {
     event WishRefunded(uint256 id, string title, address wisher, address donater, uint256 refundAmount);
     event UserRegistered(address user, string name);
 
-    constructor(address _tokenAddress) {
-        token = IERC20(_tokenAddress);
+    constructor() {
+        owner = msg.sender;
 
         wishes.push(WishModel({
             id: 0,
             title: "Buy a new car",
             description: "I want to buy a new car",
-            goalAmount: 100,
+            goalAmount: 100 ether,
             currentAmount: 0,
             wisher: msg.sender,
             isFundable: true
         }));
     }
 
-    // Регистрирует пользователя
-    // function registerUser(string memory _name) public {
-    //     require(!isUserAthorized(msg.sender), "User is already authorized");
-    //     users[msg.sender] = _name;
-    //     emit UserRegistered(msg.sender, _name);
-    // }
-
-
-    // Проверяет авторизован ли пользователь
-    // function isUserAuthorized(address account) public view returns(bool){
-    //     return (bytes(users[account]).length > 0 ? true : false);
-    // }
-
-    function getUsername(address account) public view returns(string memory){
-        return users[account];
-    }
-
-
-    // Добавляет желание в список желаний
     function createWish(string memory _title, string memory _description, uint256 _goalAmount) public {
-        // require(isUserAuthorized(account), "User is not authorized");
         require(_goalAmount > 0, "Goal amount should be greater than 0");
 
         wishes.push(WishModel({
@@ -83,31 +61,23 @@ contract Wishlist {
         emit WishCreated(wishes.length - 1, _title, _description, _goalAmount, msg.sender);
     }
 
-    // Сохраняет отправленные деньги в главном счете контракта и сохраняет всех отправителей
-    function fundWish(uint256 _wishId, uint256 _amount) public {
-        // require(isUserAuthorized(account), "User is not authorized");
-        require(_amount > 0, "Amount should be greater than 0");
-        require(_wishId > 0 && _wishId < wishes.length, "Invalid wish id");
+    function fundWish(uint256 _wishId) public payable {
+        require(msg.value > 0, "Amount should be greater than 0");
+        require(_wishId < wishes.length, "Invalid wish id");
         require(wishes[_wishId].isFundable, "Wish is not fundable");
 
         WishModel storage wish = wishes[_wishId];
-
-        token.transferFrom(msg.sender, owner, _amount);
-        wish.currentAmount += _amount;
+        wish.currentAmount += msg.value;
         wishFunders[_wishId].push(WishFunderModel({
             wishId: _wishId,
             funder: msg.sender,
-            amount: _amount
+            amount: msg.value
         }));
 
-
-        emit WishFunded(_wishId, wish.title, wish.currentAmount, wish.wisher, msg.sender, _amount);
+        emit WishFunded(_wishId, wish.title, wish.currentAmount, wish.wisher, msg.sender, msg.value);
     }
 
-    // Закрывает желание от сбора денег, но не отправляет деньги юзеру
-    // Для отправки денег юзеру, нужно вызвать функцию withdrawFunds
-    function closeWish(uint256 _wishId) public{
-        // require(isUserAuthorized(account), "User is not authorized");
+    function closeWish(uint256 _wishId) public {
         WishModel storage wish = wishes[_wishId];
         require(wish.isFundable, "Wish is not fundable to close");
         require(msg.sender == wish.wisher, "You are not the owner of the wish");
@@ -116,47 +86,44 @@ contract Wishlist {
         emit WishClosed(_wishId, wish.title, wish.wisher, wish.currentAmount);
     }
 
+    function withdrawFunds(uint256 _wishId) public {
+        WishModel storage wish = wishes[_wishId];
+        require(!wish.isFundable, "Wish is still fundable");
+        require(msg.sender == wish.wisher, "You are not the owner of the wish");
 
-    // Отправляет по запросу все желания
-    function getWish(uint256 _id) public view returns(uint256, string memory, string memory, uint256, uint256, address, bool){ 
-        require(_id > 0 && _id < wishes.length, "Invalid wish id");
+        uint256 amount = wish.currentAmount;
+        wish.currentAmount = 0;
+        payable(wish.wisher).transfer(amount);
+
+        emit WishWithdrawn(_wishId, wish.title, wish.wisher, amount);
+    }
+
+    function getWish(uint256 _id) public view returns (uint256, string memory, string memory, uint256, uint256, address, bool) {
+        require(_id < wishes.length, "Invalid wish id");
         WishModel memory wish = wishes[_id];
         return (wish.id, wish.title, wish.description, wish.goalAmount, wish.currentAmount, wish.wisher, wish.isFundable);
     }
+
     function getWishes() public view returns (WishModel[] memory) {
         return wishes;
     }
-    function getWishCount() public view returns(uint256){
+
+    function getWishCount() public view returns (uint256) {
         return wishes.length;
     }
 
-    // Юзер закрывает желание и забирает деньги
-    function withdrawFunds(uint256 _id) public{
-        // require(isUserAuthorized(account), "User is not authorized");
-        require(_id > 0 && _id < wishes.length, "Invalid wish id");
-        WishModel memory wish = wishes[_id];
-        require(msg.sender == wish.wisher, "You are not the owner of the wish");
+    function refundWish(uint256 _wishId) public {
+        require(_wishId < wishes.length, "Invalid wish id");
+        require(wishes[_wishId].isFundable, "Wish is not fundable to refund");
 
-        token.transferFrom(owner, msg.sender, wish.currentAmount);
-        wish.currentAmount = 0;
-        wish.isFundable = false;
-        emit WishWithdrawn(_id, wish.title, msg.sender, wishes[_id].currentAmount);
-    }
-    
-
-    // Возможность донатеру вернуть деньги
-    function refundWish(address account, uint256 _id) public{
-        // require(isUserAuthorized(account), "User is not authorized");
-        require(_id > 0 && _id < wishes.length, "Invalid wish id");
-        require(wishes[_id].isFundable, "Wish is not fundable to refund");
-
-        WishModel storage wish = wishes[_id];
-        WishFunderModel[] memory wishFunder = wishFunders[_id];
-        for(uint256 i = 0; i < wishFunder.length; i++){
-            if(wishFunder[i].funder == account){
-                token.transferFrom(owner, msg.sender, wishFunder[i].amount);
-                wish.currentAmount -= wishFunder[i].amount;
-                emit WishRefunded(_id, wish.title, wish.wisher, msg.sender, wishFunder[i].amount);
+        WishModel storage wish = wishes[_wishId];
+        WishFunderModel[] storage wishFunder = wishFunders[_wishId];
+        for (uint256 i = 0; i < wishFunder.length; i++) {
+            if (wishFunder[i].funder == msg.sender) {
+                uint256 amount = wishFunder[i].amount;
+                wish.currentAmount -= amount;
+                payable(msg.sender).transfer(amount);
+                emit WishRefunded(_wishId, wish.title, wish.wisher, msg.sender, amount);
             }
         }
     }

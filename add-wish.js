@@ -6,7 +6,6 @@ async function connectToWallet() {
             const accounts = await web3.eth.getAccounts();
             account = accounts[0];
             console.log('Connected account:', account);
-
             wishlistContract = new web3.eth.Contract(contractABI, contractAddress);
             console.log('Contract initialized:', wishlistContract);
 
@@ -27,9 +26,8 @@ async function showUserData() {
     }
 
     try {
-        const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-        const balance = await tokenContract.methods.balanceOf(account).call();
-        const formattedBalance = balance;
+        const balance = await web3.eth.getBalance(account);
+        const formattedBalance = web3.utils.fromWei(balance, 'ether');
         console.log('Balance:', formattedBalance);
 
         document.getElementById('user-balance').innerText = formattedBalance;
@@ -43,20 +41,23 @@ async function showUserData() {
 // Add a new wish
 async function addWish(event) {
     event.preventDefault();
+    console.log("Add Wish button clicked");
 
-    const title = document.getElementById('wish-title').value.trim();
-    const description = document.getElementById('wish-description').value.trim();
-    const goalAmount = parseFloat(document.getElementById('wish-goal').value);
+    const title = document.getElementById('wish-title').value;
+    const description = document.getElementById('wish-description').value;
+    const goalAmount = document.getElementById('wish-goal').value;
 
-    if (!title || !description || isNaN(goalAmount) || goalAmount <= 0) {
-        alert("Please fill in all fields with valid data. Goal amount must be a positive number.");
+    if (!title || !description || !goalAmount || isNaN(goalAmount) || goalAmount <= 0) {
+        alert("Invalid input");
         return;
     }
 
     try {
-        await wishlistContract.methods.createWish(title, description, goalAmount).send({ from: account });
+        await wishlistContract.methods.createWish(title, description, web3.utils.toWei(goalAmount, 'ether')).send({ from: account });
         alert("Wish added successfully!");
-        document.getElementById('add-wish-form').reset();
+        document.getElementById('wish-title').value = '';
+        document.getElementById('wish-description').value = '';
+        document.getElementById('wish-goal').value = '';
     } catch (e) {
         console.error("Error adding wish:", e);
         alert("Error adding wish: " + e.message);
@@ -66,7 +67,7 @@ async function addWish(event) {
 // Main function
 function main() {
     showUserData();
-    document.getElementById('add-wish-form').addEventListener('submit', addWish);
 }
 
 document.addEventListener('DOMContentLoaded', connectToWallet);
+document.getElementById('add-wish-form').addEventListener('submit', addWish);

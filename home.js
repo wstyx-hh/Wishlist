@@ -7,7 +7,6 @@ async function connectToWallet() {
             const accounts = await web3.eth.getAccounts();
             account = accounts[0];
             console.log('Connected account:', account);
-
             wishlistContract = new web3.eth.Contract(contractABI, contractAddress);
             console.log('Contract initialized:', wishlistContract);
 
@@ -28,9 +27,8 @@ async function showUserData() {
     }
 
     try {
-        const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-        const balance = await tokenContract.methods.balanceOf(account).call();
-        const formattedBalance = balance;
+        const balance = await web3.eth.getBalance(account);
+        const formattedBalance = web3.utils.fromWei(balance, 'ether');
         console.log('Balance:', formattedBalance);
 
         document.getElementById('user-balance').innerText = formattedBalance;
@@ -97,8 +95,8 @@ function renderWishes(wish) {
     wishElement.innerHTML = `
         <h4>${wish.title}</h4>
         <p>${wish.description}</p>
-        <p><strong>Goal:</strong> ${wish.goalAmount} WSH</p>
-        <p><strong>Current:</strong> ${wish.currentAmount} WSH</p>
+        <p><strong>Goal:</strong> ${web3.utils.fromWei(wish.goalAmount, 'ether')} ETH</p>
+        <p><strong>Current:</strong> ${web3.utils.fromWei(wish.currentAmount, 'ether')} ETH</p>
         <p><small>By: ${wish.wisher}</small></p>
         <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#supportModal" onclick="setSupportWishId(${wish.id})">Support</button>
         <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#refundModal" onclick="setRefundWishId(${wish.id})">Refund</button>
@@ -125,11 +123,8 @@ document.getElementById('supportForm').addEventListener('submit', async function
     }
 
     try {
-        const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-        await tokenContract.methods.approve(account, amount).send({ from: account });
-
         // Fund the wish
-        await wishlistContract.methods.fundWish(currentWishId, amount).send({ from: account });
+        await wishlistContract.methods.fundWish(currentWishId).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
         alert("Wish funded successfully!");
         document.getElementById('supportAmount').value = '';
         const supportModal = bootstrap.Modal.getInstance(document.getElementById('supportModal'));
@@ -153,18 +148,15 @@ document.getElementById('confirmRefund').addEventListener('click', async functio
 });
 
 async function fundWish(wishId) {
-    const amount = prompt("Enter the amount you want to fund (in WSH):");
+    const amount = prompt("Enter the amount you want to fund (in ETH):");
     if (!amount || isNaN(amount) || amount <= 0) {
         alert("Invalid amount");
         return;
     }
 
     try {
-        const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-        await tokenContract.methods.approve(contractAddress, amount).send({ from: account });
-
         // Fund the wish
-        await wishlistContract.methods.fundWish(wishId, amount).send({ from: account });
+        await wishlistContract.methods.fundWish(wishId).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
         alert("Wish funded successfully!");
 
         // Refresh the wishes list

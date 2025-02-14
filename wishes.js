@@ -6,7 +6,6 @@ async function connectToWallet() {
             const accounts = await web3.eth.getAccounts();
             account = accounts[0];
             console.log('Connected account:', account);
-
             wishlistContract = new web3.eth.Contract(contractABI, contractAddress);
             console.log('Contract initialized:', wishlistContract);
 
@@ -27,9 +26,8 @@ async function showUserData() {
     }
 
     try {
-        const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-        const balance = await tokenContract.methods.balanceOf(account).call();
-        const formattedBalance = balance;
+        const balance = await web3.eth.getBalance(account);
+        const formattedBalance = web3.utils.fromWei(balance, 'ether');
         console.log('Balance:', formattedBalance);
 
         document.getElementById('user-balance').innerText = formattedBalance;
@@ -98,8 +96,8 @@ function renderUserWishes(wish) {
     wishElement.innerHTML = `
         <h4>${wish.title}</h4>
         <p>${wish.description}</p>
-        <p><strong>Goal:</strong> ${wish.goalAmount} WSH</p>
-        <p><strong>Current:</strong> ${wish.currentAmount} WSH</p>
+        <p><strong>Goal:</strong> ${web3.utils.fromWei(wish.goalAmount, 'ether')} ETH</p>
+        <p><strong>Current:</strong> ${web3.utils.fromWei(wish.currentAmount, 'ether')} ETH</p>
         <button class="btn btn-warning" onclick="closeWish(${wish.id})">Close Fund</button>
         <button class="btn btn-success" onclick="withdrawFunds(${wish.id})">Withdraw Funds</button>
     `;
