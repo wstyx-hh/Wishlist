@@ -48,22 +48,42 @@
     </style>
 </head>
 <body>
-    <div class="header container mt-3">
-        <h1>WishFund</h1>
-        <div class="user-info">
-            <span id="user-address">0x0000...0000</span> | <span id="user-balance">0.00</span><span> WSH</span>
-        </div>
+<div class="header container mt-3">
+    <h1>WishFund</h1>
+    <div class="user-info">
+        <span id="user-address">0x0000...0000</span> | <span id="user-balance">0.00</span><span> ETH</span>
     </div>
-    <div class="container">
-        <h2>Authorization</h2>
-        <form>
-            <input id="username" type="text" class="form-control mb-3" placeholder="Username" required>
-            <button id="register-btn" type="submit" class="btn btn-custom w-100">Authorize</button>
-        </form>
-    </div>
+</div>
+<div class="container">
+    <h2>Authorization</h2>
+    <form id="auth-form">
+        <input id="username" type="text" class="form-control mb-3" placeholder="Username" required>
+        <button id="register-btn" type="submit" class="btn btn-custom w-100">Authorize</button>
+    </form>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-    <script src="connect.js"></script>
-    <script src="auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+<script src="connect.js"></script>
+<script src="auth.js"></script>
+
+<script>
+    // Prevent form submission and handle the registration (authorize) logic
+    document.getElementById('auth-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        // Get username
+        const username = document.getElementById('username').value;
+        if (username.trim() === "") {
+            alert("Please enter a valid username.");
+            return;
+        }
+
+        // Handle authorization logic, such as linking the username with the wallet address
+        console.log("Username:", username);
+        alert("Authorization successful!");
+
+        // You can now send the username and the wallet address to your server or store them locally
+    });
+</script>
 </body>
 </html>

@@ -27,16 +27,16 @@ async function showUserData() {
     }
 
     try {
-        const tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-        const balance = await tokenContract.methods.balanceOf(account).call();
-        const formattedBalance = balance;
+        // Remove token contract as we are now using Ethereum for payments
+        const balance = await web3.eth.getBalance(account);
+        const formattedBalance = web3.utils.fromWei(balance, 'ether');
         console.log('Balance:', formattedBalance);
 
         document.getElementById('user-balance').innerText = formattedBalance;
         let shortAcc = account.slice(0, 6) + '...' + account.slice(account.length - 4, account.length);
         document.getElementById('user-address').innerText = shortAcc;
     } catch (e) {
-        console.log('Ошибка вывода данных пользователя:', e);
+        console.log('Error retrieving user data:', e);
     }
 }
 
@@ -54,7 +54,12 @@ async function addWish(event) {
     }
 
     try {
-        await wishlistContract.methods.createWish(title, description, goalAmount).send({ from: account });
+        // Here we send Ethereum to fund the wish goal
+        const etherValue = web3.utils.toWei(goalAmount.toString(), 'ether');
+        await wishlistContract.methods.createWish(title, description, etherValue).send({
+            from: account,
+            value: etherValue
+        });
         alert("Wish added successfully!");
         document.getElementById('add-wish-form').reset();
     } catch (e) {
