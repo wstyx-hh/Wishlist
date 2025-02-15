@@ -52,9 +52,37 @@
             font-size: 14px;
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
         }
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 10px;
+            background: linear-gradient(to right, #ff99cc, #ccffff);
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body>
+<nav>
+    <a href="home.html">Home</a>
+    <a href="add-wish.html">Add a wish</a>
+    <a href="auth.html">Authorize</a>
+</nav>
     <div class="header container mt-3">
         <h1>WishFund</h1>
         <div class="user-info">
