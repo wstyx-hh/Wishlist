@@ -1,19 +1,23 @@
 {
   "name": "wishlist-kickstarter",
   "version": "1.0.0",
-  "description": "",
+  "description": "Decentralized wishlist crowdfunding: Solidity contract + plain HTML/JS frontend (web3.js, MetaMask)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run deploy.js --network localhost",
+    "deploy:ganache": "hardhat run deploy.js --network ganache"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.6.1",
     "hardhat": "^2.22.18"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.2.0",
     "ganache-cli": "^6.12.2",
     "web3": "^4.16.0"
   }

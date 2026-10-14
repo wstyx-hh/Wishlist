@@ -87,14 +87,13 @@
     <div class="header container mt-3">
         <h1>WishFund</h1>
         <div class="user-info">
-            <span id="user-address">0x0000...0000</span> | <span id="user-balance">0.00 USDT</span>
+            <span id="user-address">0x0000...0000</span> | <span id="user-balance">0.00 ETH</span>
         </div>
     </div>
     <div class="container">
         <h2>Wish Board</h2>
         <div id="wish-list"></div>
     </div>
-
     <!-- Support Modal -->
     <div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -106,8 +105,8 @@
                 <div class="modal-body">
                     <form id="supportForm">
                         <div class="mb-3">
-                            <label for="supportAmount" class="form-label">Enter the amount you want to donate (in WSH):</label>
-                            <input type="number" class="form-control" id="supportAmount" required>
+                            <label for="supportAmount" class="form-label">Enter the amount you want to donate (in ETH):</label>
+                            <input type="number" class="form-control" id="supportAmount" step="any" min="0" required>
                         </div>
                         <button type="submit" class="btn btn-custom">Donate</button>
                     </form>
@@ -116,25 +115,9 @@
         </div>
     </div>
 
-    <!-- Refund Modal -->
-    <div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="refundModalLabel">Refund Wish</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to refund this wish?</p>
-                    <button type="button" class="btn btn-danger" id="confirmRefund">Yes, Refund</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@4.16.0/dist/web3.min.js"></script>
+    <script src="config.js"></script>
     <script src="connect.js"></script>
     <script src="home.js"></script>
 </body>
